@@ -11,21 +11,24 @@
             background-color: #f0f0f0;
             color: #333;
         }
+
         h1 {
             font-size: 3em;
             margin-top: 20px;
             color: #0055a5;
             text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
         }
+
         .gauge {
-            width: 300px; /* Размер круга */
-            height: 300px; /* Размер круга */
+            width: 300px;
+            height: 300px;
             position: relative;
             margin: 50px auto;
             background-color: #eaeaea;
             border-radius: 50%;
-            border: 5px solid #333; /* Темная граница круга */
+            border: 5px solid #333;
         }
+
         .arrow {
             width: 0;
             height: 0;
@@ -33,25 +36,30 @@
             border-right: 5px solid transparent;
             border-bottom: 130px solid red;
             position: absolute;
-            top: calc(50% - 130px); /* Положение стрелки в центре круга */
+            top: calc(50% - 130px);
             left: calc(50% - 5px);
-            transform-origin: 50% 100%; /* Указание, что поворот происходит у основания стрелки */
-            transform: rotate(220deg); /* Начальное положение стрелки на 220 градусах */
+            transform-origin: 50% 100%;
+            transform: rotate(220deg);
         }
+
         .slider-container {
             margin: 20px 0;
         }
+
         label {
             font-size: 1.2em;
             margin-right: 10px;
         }
+
         input[type=range] {
-            width: 300px; /* Ширина слайдеров */
+            width: 300px;
         }
+
         .slider-container span {
             font-weight: bold;
             color: #0055a5;
         }
+
         .value-display {
             margin-top: 20px;
             padding: 10px;
@@ -63,6 +71,7 @@
             font-family: monospace;
             font-weight: bold;
         }
+
         .mark {
             font-family: monospace;
             position: absolute;
@@ -75,8 +84,29 @@
             height: 20px;
             border-radius: 20%;
             background-color: #ccc;
-            transform: translate(-50%, -50%); /* Центрирование метки */
+            transform: translate(-50%, -50%);
             font-weight: bold;
+        }
+
+        .highlight {
+            background-color: #f0f0f0;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+            width: 300px; /* уменьшенная ширина */
+            margin: 0 auto;
+            border: 2px solid #ccc;
+        }
+
+        .pid-parameters {
+            font-size: 0.9em;
+            color: #777;
+        }
+
+        .timer {
+            font-size: 1em;
+            color: #777;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -84,44 +114,47 @@
 
     <h1>PID Optimized Response Adjustment System (PIDORAS)</h1>
 
-    <!-- Графическое отображение шкалы с индикатором стрелки -->
     <div class="gauge">
         <div class="arrow" id="arrow"></div>
     </div>
 
-    <!-- Отображение текущего значения с точностью до 5 знаков -->
     <div class="value-display" id="current-value">50</div>
 
-    <!-- Слайдер для выбора целевого значения (Target Value) -->
     <div class="slider-container">
         <label for="target">Target Value:</label>
         <input type="range" id="target" min="0" max="100" value="50">
         <span id="target-value">50</span>
     </div>
 
-    <!-- Слайдер для коэффициента пропорциональности (P) -->
     <div class="slider-container">
         <label for="p">P (Proportional):</label>
-        <input type="range" id="p" min="0" max="2" step="0.01" value="1">
-        <span id="p-value">1.00</span>
+        <input type="range" id="p" min="0" max="2" step="0.01" value="0.3">
+        <span id="p-value">0.3</span>
     </div>
 
-    <!-- Слайдер для интегрального коэффициента (I) -->
     <div class="slider-container">
         <label for="i">I (Integral):</label>
-        <input type="range" id="i" min="0" max="1" step="0.01" value="0.1">
-        <span id="i-value">0.10</span>
+        <input type="range" id="i" min="0" max="1" step="0.001" value="0.1">
+        <span id="i-value">0.120</span>
     </div>
 
-    <!-- Слайдер для коэффициента дифференцирования (D) -->
     <div class="slider-container">
         <label for="d">D (Derivative):</label>
-        <input type="range" id="d" min="0" max="1" step="0.01" value="0.01">
-        <span id="d-value">0.01</span>
+        <input type="range" id="d" min="0" max="1" step="0.001" value="0.01">
+        <span id="d-value">0.010</span>
+    </div>
+
+    <div class="highlight">
+        <div class="pid-parameters">
+            <div>Error: <span id="error-value">0.000</span></div>
+            <div>Proportional: <span id="p-value-display">0.300</span></div>
+            <div>Integral: <span id="integral-value">0</span></div>
+            <div>Derivative: <span id="derivative-value">0</span></div>
+        </div>
+        <div class="timer" id="timer-display">Timer: 0.000s</div>
     </div>
 
     <script>
-        // Получаем элементы интерфейса
         const arrow = document.getElementById("arrow");
         const targetSlider = document.getElementById("target");
         const targetValue = document.getElementById("target-value");
@@ -129,6 +162,7 @@
 
         const pSlider = document.getElementById("p");
         const pValue = document.getElementById("p-value");
+        const pValueDisplay = document.getElementById("p-value-display"); // новый элемент для отображения P
 
         const iSlider = document.getElementById("i");
         const iValue = document.getElementById("i-value");
@@ -136,81 +170,121 @@
         const dSlider = document.getElementById("d");
         const dValue = document.getElementById("d-value");
 
-        // Константы углов поворота шкалы
-        const minAngle = 220; // Минимальный угол шкалы
-        const maxAngle = 500; // Максимальный угол шкалы
-        const radius = 155; // Радиус для меток (не используется в текущем коде, можно удалить)
+        const errorDisplay = document.getElementById("error-value");
+        const integralDisplay = document.getElementById("integral-value");
+        const derivativeDisplay = document.getElementById("derivative-value");
+        const timerDisplay = document.getElementById("timer-display");
 
-        // Начальные значения для PID-контроллера
-        let currentPosition = 0; // Текущее положение стрелки
-        let integral = 0; // Сумма ошибок для интегрального члена
-        let previousError = 0; // Предыдущее значение ошибки для вычисления производной
+        const minAngle = 220;
+        const maxAngle = 500;
 
-        // Функция для создания меток по окружности шкалы
+        const accuracy = 5;
+
+        let currentPosition = 0;
+        let integral = 0;
+        let previousError = 0;
+        let timerRunning = false;
+        let timerStartTime = null;
+        let arrowConstraints = false;
+
         function createMarks() {
             const gauge = document.querySelector('.gauge');
-            const totalMarks = 11; // Количество меток (шаг 10 между метками 0-100)
+            const totalMarks = 11;
 
             for (let i = 0; i < totalMarks; i++) {
-                const markValue = i * 10; // Значение на каждой метке
-                const angle = minAngle + i / (totalMarks - 1) * (maxAngle - minAngle); // Угол каждой метки
+                const markValue = i * 10;
+                const angle = minAngle + i / (totalMarks - 1) * (maxAngle - minAngle);
                 const mark = document.createElement('div');
 
-                // Перевод угла в радианы для расчета координат
-                const radian = (angle - 90) * (Math.PI / 180); 
-                const x = (1 + Math.cos(radian)) * 50 + '%'; // Расчет позиции X
-                const y = (1 + Math.sin(radian)) * 50 + '%'; // Расчет позиции Y
+                const radian = (angle - 90) * (Math.PI / 180);
+                const x = (1 + Math.cos(radian)) * 50 + '%';
+                const y = (1 + Math.sin(radian)) * 50 + '%';
 
                 mark.className = 'mark';
                 mark.style.left = x;
                 mark.style.top = y;
-                mark.innerText = markValue; // Установка текста метки
+                mark.innerText = markValue;
 
-                gauge.appendChild(mark); // Добавление метки на шкалу
+                gauge.appendChild(mark);
             }
         }
 
-        // Функция для обновления PID контроля
         function updatePID() {
-            // Получаем текущие значения слайдеров
             const target = parseFloat(targetSlider.value);
             const p = parseFloat(pSlider.value);
             const i = parseFloat(iSlider.value);
             const d = parseFloat(dSlider.value);
 
-            // Расчет ошибки (разница между целевым и текущим значением)
             const error = target - currentPosition;
-            integral += error; // Интегральная сумма ошибок
-            const derivative = error - previousError; // Производная ошибки
+            integral += error;
+            const derivative = error - previousError;
 
-            // Основное PID выражение для выхода
             const output = p * error + i * integral + d * derivative;
-            previousError = error; // Сохранение текущей ошибки для следующего шага
+            previousError = error;
 
-            // Обновление текущей позиции и ограничения по диапазону
             currentPosition += output;
-            currentPosition = Math.max(0, Math.min(100, currentPosition));
 
-            // Рассчитываем угол поворота стрелки в зависимости от текущего положения
+            if (arrowConstraints) {
+                currentPosition = Math.max(0, Math.min(100, currentPosition));
+            }
+
             const targetAngle = minAngle + (currentPosition * (maxAngle - minAngle) / 100);
-            arrow.style.transform = `rotate(${targetAngle}deg)`; // Применяем поворот стрелки
+            arrow.style.transform = `rotate(${targetAngle}deg)`;
 
-            // Обновляем отображаемые значения на странице
             targetValue.innerText = target;
             pValue.innerText = p.toFixed(2);
-            iValue.innerText = i.toFixed(2);
-            dValue.innerText = d.toFixed(2);
-            currentValueDisplay.innerText = currentPosition.toFixed(5); // Отображение до 5 знаков после запятой
+            pValueDisplay.innerText = p.toFixed(2); // обновление отображения P
+            iValue.innerText = i.toFixed(3);
+            dValue.innerText = d.toFixed(3);
+            errorDisplay.innerText = error.toFixed(accuracy);
+            integralDisplay.innerText = integral.toFixed(5);
+            derivativeDisplay.innerText = derivative.toFixed(5);
+            currentValueDisplay.innerText = currentPosition.toFixed(accuracy);
+
+            updateTimer();
+
+            if (Math.abs(error.toFixed(accuracy)) === 0) {
+                stopTimer();
+            }
         }
 
-        // Функция для анимации обновлений
+        function updateTimer() {
+            if (timerRunning) {
+                const elapsed = (Date.now() - timerStartTime);
+                timerDisplay.innerText = `Timer: ${(elapsed / 1000).toFixed(3)}s`;
+            }
+        }
+
+        function startTimer() {
+            timerRunning = true;
+            timerStartTime = Date.now();
+        }
+
+        function stopTimer() {
+            if (timerRunning) {
+                const elapsed = (Date.now() - timerStartTime);
+                timerDisplay.innerText = `Completed in ${(elapsed / 1000).toFixed(3)}s`;
+            }
+            timerRunning = false;
+        }
+
+        targetSlider.addEventListener('input', () => {
+            startTimer();
+            updatePID();
+        });
+
+        pSlider.addEventListener('input', updatePID);
+        iSlider.addEventListener('input', updatePID);
+        dSlider.addEventListener('input', updatePID);
+
         function animate() {
-            updatePID(); // Обновляем значения PID
-            requestAnimationFrame(animate); // Продолжаем анимацию
+            updatePID();
+            requestAnimationFrame(animate);
         }
 
-        createMarks(); // Создаем метки при загрузке страницы
-        animate(); // Запускаем анимацию
+        createMarks();
+        animate();
+        startTimer();
     </script>
 
 </body>
