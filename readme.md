@@ -41,7 +41,7 @@ This program was created with ChatGPT.
 
 ## Screenshot
 
-![Screenshot of PIDORAS](https://sun9-5.userapi.com/impg/pOFgzcgd3sAtkBZAZYaFA9g2NmFZ4S3YQccn0g/uBwZ8woc4Yg.jpg?size=1140x865&quality=95&sign=ede326a4cf533c3d7a5fa69d918636d7&type=album)
+![Screenshot of PIDORAS](https://sun9-80.userapi.com/impg/kCar5C7yZKR5z5KbKJssR5DN0gQQT-1vFyB-3g/bOTYDuX5fHo.jpg?size=1335x912&quality=95&sign=6b9e99ba72f4cb6aeb476cbf10c31d79&type=album)
 
 ## How PID Works
 
